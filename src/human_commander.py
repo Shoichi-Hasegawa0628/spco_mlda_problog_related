@@ -18,8 +18,6 @@ import random
 class EnterCommand():
     def __init__(self):
         self.pub = rospy.Publisher('/human_command', String, queue_size=1) ## queue size is not important for sending just one messeage.
-        #self.problog_code = global_knowledge.LogicalInference()
-        #self._base_time = rospy.Time.now().to_sec()
         self.name = ["blue_cup", "green_cup", "orange_cup",
                     "penguin_doll", "pig_doll", "sheep_doll",
                     "coffee_bottle", "fruits_bottle", "muscat_bottle"]
@@ -43,17 +41,11 @@ class EnterCommand():
 				muscat_bottle
         """
 
-
     def StartPublish(self): 
-        ## node initialization
-        #rate = rospy.Rate(1) # 1 Hz
-        n = random.randint(0, len(self.name)-1)
-        #while not rospy.is_shutdown():
-        #TeachingText = raw_input('Enter human command: ')               
+        n = random.randint(0, len(self.name)-1)           
         TeachingText = self.name[n]
         print(TeachingText)
         print('Command: ' + 'Bring ' + TeachingText + ' for me')
-        #while rospy.Time.now().to_sec() - self._base_time < 10:
         while not rospy.is_shutdown():
             self.pub.publish(TeachingText)
 
