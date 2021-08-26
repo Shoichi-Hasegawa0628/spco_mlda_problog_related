@@ -2,17 +2,9 @@
 # -*- coding: utf-8 -*-
 # Terminal経由で探索すべき物体を送信するコード
 
-#from catkin_ws.src.problog_ros.src import global_knowledge
 import rospy
 from std_msgs.msg import String
 import random
-#import os
-#import sys
-
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../" + "../")
-#sys.path.append('/root/RULO/catkin_ws/src/problog_ros/src')
-#print (sys.path)
-#import global_knowledge
 
 
 class EnterCommand():
@@ -23,8 +15,9 @@ class EnterCommand():
                     "coffee_bottle", "fruits_bottle", "muscat_bottle"]
 
 
-        #物体の名前一覧 (Problogに依存)
         """
+        物体の名前一覧 (Problogに依存)
+        
             cup>>>
                 blue_cup
 				green_cup
@@ -41,13 +34,16 @@ class EnterCommand():
 				muscat_bottle
         """
 
+
     def StartPublish(self): 
         n = random.randint(0, len(self.name)-1)           
         TeachingText = self.name[n]
+        #TeachingText = "I"
         print(TeachingText)
         print('Command: ' + 'Bring ' + TeachingText + ' for me')
         while not rospy.is_shutdown():
             self.pub.publish(TeachingText)
+
 
 if __name__ == '__main__':
     rospy.init_node('enter_human_command', anonymous=False)
