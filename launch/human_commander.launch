@@ -2,6 +2,6 @@
 
 <launch>
 
-    <node name="human_commander" pkg="spco_mlda_problog" type="human_commander.py" output="screen" cwd="node" />
+    <node name="human_commander" pkg="spco_mlda_problog_related" type="human_commander.py" output="screen" cwd="node" />
     
 </launch>

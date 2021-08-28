@@ -36,9 +36,9 @@ class EnterCommand():
 
 
     def StartPublish(self): 
-        n = random.randint(0, len(self.name)-1)           
-        TeachingText = self.name[n]
-        #TeachingText = "I"
+        #n = random.randint(0, len(self.name)-1)           
+        #TeachingText = self.name[n]
+        TeachingText = "pig_doll"
         print(TeachingText)
         print('Command: ' + 'Bring ' + TeachingText + ' for me')
         while not rospy.is_shutdown():
