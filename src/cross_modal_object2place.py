@@ -9,15 +9,12 @@ from scipy.stats import multinomial                                             
 from scipy import stats
 import csv
 import numpy as np
-import random
-
 
 class CrossModalObject2Place():
+
     def __init__(self):
         self.object_name = 0
         pass
-
-
 
     def word_callback(self):
         """
@@ -27,104 +24,104 @@ class CrossModalObject2Place():
         self.object_name = object_name
         """
 
+        # w_sの伝承サンプリング (10点サンプリング)
         target_name = ["pig", "doll"]
         result = []
+        cat_ws_list = []
+        samples = 10
         for name in range(len(target_name)):
             #target_name = "pig"
-            # w_sの伝承サンプリング
-
-            # π^oのサンプリング (ディリクレ分布)                                                                #どの物体のトピックが出現するかの確率を表現
-            # (π^o)_1 ~ P( (π^o)_1 | α^o )
-            alpha = np.array([1.0, 1.0, 1.0])
-            pi_o = dirichlet.rvs(alpha, size=1, random_state=None)
-            #print("(pi_o)_1 : {}".format(pi_o)) 
-
-
-
-            # (C^o)_tのサンプリング式
-            # P((C^o)_(t,1) | (w^o)_(t,1), θ^(o,w), (π^o)_1) ∝ P( (C^o)_(t,1) | (π^o)_1 ) P( (w^o)_(t,1) | (C^o)_(t,1), θ^(o,w))
-            ## P( (C^o)_(t,1) | (π^o)_1 ) (カテゴリ分布)
-            objct_topic_num = 3
-            object_topic = np.arange(objct_topic_num)
-            co_t_1_k = np.identity(objct_topic_num)
-            cat_co_v1 = multinomial.pmf(x = co_t_1_k, n = 1, p = pi_o)                                          #物体トピックの確率分布
-            co_idx_pre = stats.rv_discrete(name='co_idx_pre', values=(object_topic, cat_co_v1)).rvs(size=1)     #物体のトピック(事前)を一つサンプリング
-            co_idx_pre = co_idx_pre[0]
-
-            ## P( (w^o)_(t,1) | (C^o)_(t,1), θ^(o,w)) (カテゴリ分布) 
-            #object_dic = 71
-            #wo_t_1_k = np.identity(object_dic)
-            theta_ow_data = np.loadtxt('../data/Pdw[1].txt')
-            with open('../data/word_dic.txt', 'r') as f:
-                obj_name_list = f.read().split("\n")
-            cat_wo = theta_ow_data[obj_name_list.index(target_name[name]), co_idx_pre]
-            co = cat_co_v1 * cat_wo
-            co = [float(i)/sum(co) for i in co]                                                                  #正規化
-            co_idx_pos = stats.rv_discrete(name='co_idx_pos', values=(object_topic, co)).rvs(size=1)
-            co_idx_pos = co_idx_pos[0]
-
-
-
-            # (C^s)_tのサンプリング
-            # P((C^s)_t | (C^o)_(t,1), ξ, π^s) ∝ P((C^s)_t | π^s) P((C^o)_(t,1) | (C^s)_t, ξ)
-            ## P((C^s)_t | π^s) (カテゴリ分布)
-            with open('../data/3LDK_01_pi_1_0.csv', 'r') as f:
-                reader = csv.reader(f)
-                for row in reader:
-                    pass
-            pi_s_data = row
-            del pi_s_data[-1]
-            pi_s = np.array(pi_s_data, dtype = np.float64)
-            place_topic_num = len(pi_s_data)
-            place_topic = np.arange(place_topic_num)                              
-            cs_k = np.identity(place_topic_num)
-            cat_cs = multinomial.pmf(x = cs_k, n = 1, p = pi_s)
-            cs_idx_pre = stats.rv_discrete(name='cs_idx_pre', values=(place_topic, cat_cs)).rvs(size=1)
-            cs_idx_pre = cs_idx_pre[0]
-
-            ## P((C^o)_(t,1) | (C^s)_t, ξ) (カテゴリ分布)
-            #place_dic = 4
-            #co_t_1_k_v2 = np.identity(place_dic)
-            xi = []
-            with open('../data/xi16.csv') as f:
-                reader = csv.reader(f)
-                for row in reader:
-                    del row[-1]
-                    xi.append(np.array(row, dtype = np.float64))
-                    #count += 1
-            #print(xi[0][0])                                                     
-            cat_co_v2 = xi[cs_idx_pre][co_idx_pos] 
-            #print(cat_co_v2)
-            cs = cat_cs * cat_co_v2
-            cs = [float(i)/sum(cs) for i in cs]
-            #print(cs)  
-            cs_idx_pos = stats.rv_discrete(name='cs_idx_pos', values=(place_topic, cs)).rvs(size=1)
-            cs_idx_pos = cs_idx_pos[0]
-
-
-
-            # (w^s)_tのサンプリング
-            # P((w^s)_t | (C^s)_t, theta_sw) (カテゴリ分布)
-            place_dic = 4
-            ws_t_k = np.identity(place_dic)
-            theta_sw = []
-            with open('../data/3LDK_01_W_1_0.csv') as f:
-                reader = csv.reader(f)
-                for row in reader:
-                    del row[-1]
-                    theta_sw.append(np.array(row, dtype = np.float64))
-            cat_ws = multinomial.pmf(x = ws_t_k, n = 1, p = theta_sw[cs_idx_pos])
             
-            # SpCoNaviのためにbedroomとtoiletの位置を入れ替える (後日修正)
-            a = cat_ws[2]
-            b = cat_ws[3]
-            cat_ws[2] = b
-            cat_ws[3] = a
-            result.append(cat_ws)
+            for sample in range(samples):
+                # π^oのサンプリング (ディリクレ分布)                                                                #どの物体のトピックが出現するかの確率を表現
+                # (π^o)_1 ~ P( (π^o)_1 | α^o )
+                alpha = np.array([1.0, 1.0, 1.0])
+                pi_o = dirichlet.rvs(alpha, size=1, random_state=None)
+                #print("(pi_o)_1 : {}".format(pi_o)) 
 
-        final_result = (sum(result))/len(target_name)
+
+
+                # (C^o)_tのサンプリング式
+                # P((C^o)_(t,1) | (w^o)_(t,1), θ^(o,w), (π^o)_1) ∝ P( (C^o)_(t,1) | (π^o)_1 ) P( (w^o)_(t,1) | (C^o)_(t,1), θ^(o,w))
+                ## P( (C^o)_(t,1) | (π^o)_1 ) (カテゴリ分布)
+                objct_topic_num = 3
+                object_topic = np.arange(objct_topic_num)
+                co_t_1_k = np.identity(objct_topic_num)
+                cat_co_v1 = multinomial.pmf(x = co_t_1_k, n = 1, p = pi_o)                                          #物体トピックの確率分布
+                co_idx_pre = stats.rv_discrete(name='co_idx_pre', values=(object_topic, cat_co_v1)).rvs(size=1)     #物体のトピック(事前)を一つサンプリング
+                co_idx_pre = co_idx_pre[0]
+
+                ## P( (w^o)_(t,1) | (C^o)_(t,1), θ^(o,w)) (カテゴリ分布) 
+                #object_dic = 71
+                #wo_t_1_k = np.identity(object_dic)
+                theta_ow_data = np.loadtxt('../data/Pdw[1].txt')
+                with open('../data/word_dic.txt', 'r') as f:
+                    obj_name_list = f.read().split("\n")
+                cat_wo = theta_ow_data[obj_name_list.index(target_name[name]), co_idx_pre]
+                co = cat_co_v1 * cat_wo
+                co = [float(i)/sum(co) for i in co]                                                                  #正規化
+                co_idx_pos = stats.rv_discrete(name='co_idx_pos', values=(object_topic, co)).rvs(size=1)
+                co_idx_pos = co_idx_pos[0]
+
+
+
+                # (C^s)_tのサンプリング
+                # P((C^s)_t | (C^o)_(t,1), ξ, π^s) ∝ P((C^s)_t | π^s) P((C^o)_(t,1) | (C^s)_t, ξ)
+                ## P((C^s)_t | π^s) (カテゴリ分布)
+                with open('../data/3LDK_01_pi_1_0.csv', 'r') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        pass
+                pi_s_data = row
+                del pi_s_data[-1]
+                pi_s = np.array(pi_s_data, dtype = np.float64)
+                place_topic_num = len(pi_s_data)
+                place_topic = np.arange(place_topic_num)                              
+                cs_k = np.identity(place_topic_num)
+                cat_cs = multinomial.pmf(x = cs_k, n = 1, p = pi_s)
+                cs_idx_pre = stats.rv_discrete(name='cs_idx_pre', values=(place_topic, cat_cs)).rvs(size=1)
+                cs_idx_pre = cs_idx_pre[0]
+
+                ## P((C^o)_(t,1) | (C^s)_t, ξ) (カテゴリ分布)
+                #place_dic = 4
+                #co_t_1_k_v2 = np.identity(place_dic)
+                xi = []
+                with open('../data/xi5.csv') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        del row[-1]
+                        xi.append(np.array(row, dtype = np.float64))
+                        #count += 1
+                #print(xi[0][0])                                                     
+                cat_co_v2 = xi[cs_idx_pre][co_idx_pos] 
+                #print(cat_co_v2)
+                cs = cat_cs * cat_co_v2
+                cs = [float(i)/sum(cs) for i in cs]
+                #print(cs)  
+                cs_idx_pos = stats.rv_discrete(name='cs_idx_pos', values=(place_topic, cs)).rvs(size=1)
+                cs_idx_pos = cs_idx_pos[0]
+
+
+
+                # (w^s)_tのサンプリング
+                # P((w^s)_t | (C^s)_t, theta_sw) (カテゴリ分布)
+                place_dic = 4
+                ws_t_k = np.identity(place_dic)
+                theta_sw = []
+                with open('../data/3LDK_01_W_1_0.csv') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        del row[-1]
+                        theta_sw.append(np.array(row, dtype = np.float64))
+                cat_ws = multinomial.pmf(x = ws_t_k, n = 1, p = theta_sw[cs_idx_pos])
+                cat_ws_list.append(cat_ws)
+            
+            sub_result = (sum(cat_ws_list)) / samples # 10点分の平均を取る
+            result.append(sub_result)
+            cat_ws_list = []
+        final_result = (sum(result)) / len(target_name) # pig_doll, pig, doll分の確率を平均化
+        #print(final_result)
         return final_result
-
 
 
 if __name__ == "__main__":
